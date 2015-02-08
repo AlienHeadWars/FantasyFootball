@@ -1,22 +1,31 @@
 package main.java.application;
 
+import com.sun.jersey.api.client.Client;
+
+import main.player.PlayerResource;
 import io.dropwizard.Application;
+import io.dropwizard.client.JerseyClientBuilder;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 
-public class FantasyFootballApplication extends Application<FantasyFootballConfiguration>{
+public class FantasyFootballApplication extends
+		Application<FantasyFootballConfiguration> {
+
+	public static void main(String... args) throws Exception {
+		new FantasyFootballApplication().run(args);
+	}
 
 	@Override
 	public void initialize(Bootstrap<FantasyFootballConfiguration> arg0) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
-	public void run(FantasyFootballConfiguration arg0, Environment arg1)
-			throws Exception {
-		// TODO Auto-generated method stub
-		
+	public void run(FantasyFootballConfiguration configuration,
+			Environment environment) throws Exception {
+		Client client = new JerseyClientBuilder(environment).build(getName());
+		environment.jersey().register(new PlayerResource(client));
 	}
 
 }
