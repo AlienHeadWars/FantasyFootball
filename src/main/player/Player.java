@@ -1,20 +1,19 @@
 package main.player;
 
+import static main.java.utilities.CommonValues.NOT_SET_INTEGER;
+import static main.java.utilities.CommonValues.NOT_SET_STRING;
+
 import java.util.ArrayList;
 import java.util.Collection;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import main.fixture.Fixture;
 import main.fixture.FixtureHistory;
-import static main.java.utilities.CommonValues.*;
-import static main.java.utilities.CustomDeserialisers.*;
+import main.java.utilities.CustomDeserialisers;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.JsonNode;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Player {
 
@@ -46,10 +45,16 @@ public class Player {
 		return playerGames;
 	}
 	
+	@JsonIgnore
 	public void setPlayerGames(Collection<FixtureHistory> playerGames) {
 		this.playerGames = playerGames;
 	}
 	
+	@JsonProperty("fixture_history")
+	public void setPlayerGames(JsonNode node){
+		JsonNode allGames=node.get("all");
+		allGames.elements().forEachRemaining(g->playerGames.add(CustomDeserialisers.toFixtureHistory(g)));
+	}
 	
 	public Collection<Fixture> getPlayerFixtures() {
 		return playerFixtures;
