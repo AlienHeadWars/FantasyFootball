@@ -2,9 +2,9 @@ package player;
 
 import java.util.Collection;
 
+import fixture.CustomDeserialisers;
 import fixture.Fixture;
 import fixture.FixtureHistory;
-import utilities.CustomDeserialisers;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -75,7 +75,7 @@ public class PlayerFromFFAPI extends Player {
 	}
 
 	@Override
-	@JsonProperty("last_name")
+	@JsonProperty("second_name")
 	public void setLastName(String lastName) {
 		// TODO Auto-generated method stub
 		super.setLastName(lastName);

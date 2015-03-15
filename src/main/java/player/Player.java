@@ -6,14 +6,14 @@ import static utilities.CommonValues.NOT_SET_STRING;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import couchdb.Entity;
-import fixture.Fixture;
-import fixture.FixtureHistory;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 
-public class Player extends Entity{
+import couchdb.SimpleEntity;
+import fixture.Fixture;
+import fixture.FixtureHistory;
+
+public class Player extends SimpleEntity{
 
 	private String webName = NOT_SET_STRING;
 	private Collection<FixtureHistory> playerGames = new ArrayList<FixtureHistory>();
@@ -35,42 +35,51 @@ public class Player extends Entity{
 		super.setId(id);
 	}
 	
+	@JsonProperty("webName")
 	public String getWebName() {
 		return webName;
 	}
 
+	@JsonProperty("playerGames")
 	public Collection<FixtureHistory> getPlayerGames() {
 		return playerGames;
 	}
 
+	@JsonProperty("playerFixtures")
 	public Collection<Fixture> getPlayerFixtures() {
 		return playerFixtures;
 	}
 
+	@JsonProperty("playerFixturesJSON")
 	public JsonNode getPlayerFixturesJson() {
 		return playerFixturesJson;
 	}
 
+	@JsonProperty("type")
 	public PositionType getType() {
 		return type;
 	}
 
+	@JsonProperty("team")
 	public Team getTeam() {
 		return team;
 	}
-
+	@JsonProperty("firstName")
 	public String getFirstName() {
 		return firstName;
 	}
 
+	@JsonProperty("lastName")
 	public String getLastName() {
 		return lastName;
 	}
 
+	@JsonProperty("chanceOfPlayingThisRound")
 	public Integer getChanceOfPlayingThisRound() {
 		return chanceOfPlayingThisRound;
 	}
 
+	@JsonProperty("changeOfPlayingNextRound")
 	public Integer getChanceOfPlayingNextRound() {
 		return chanceOfPlayingNextRound;
 	}

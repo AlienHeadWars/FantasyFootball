@@ -5,6 +5,7 @@ import com.sun.jersey.api.client.Client;
 import player.PlayerResource;
 import io.dropwizard.Application;
 import io.dropwizard.client.JerseyClientBuilder;
+import io.dropwizard.client.JerseyClientConfiguration;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 
