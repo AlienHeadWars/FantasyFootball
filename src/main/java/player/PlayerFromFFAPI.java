@@ -21,7 +21,7 @@ public class PlayerFromFFAPI extends Player {
 	}
 
 	@JsonProperty("fixture_history")
-	public void setPlayerGames(JsonNode node) {
+	public void setPlayerGames_(JsonNode node) {
 		JsonNode allGames = node.get("all");
 		allGames.elements().forEachRemaining(
 				g -> getPlayerGames().add(
@@ -35,7 +35,7 @@ public class PlayerFromFFAPI extends Player {
 	}
 
 	@JsonProperty("fixtures")
-	public void setPlayerFixturesJson(JsonNode node) {
+	public void setPlayerFixturesJson_(JsonNode node) {
 		super.setPlayerFixturesJson(node.get("all"));
 	}
 
@@ -46,7 +46,7 @@ public class PlayerFromFFAPI extends Player {
 	}
 
 	@JsonProperty("type_name")
-	public void setType(String typeName) {
+	public void setType_(String typeName) {
 		setType(PositionType.valueOf(typeName.toUpperCase()));
 	}
 
@@ -60,37 +60,32 @@ public class PlayerFromFFAPI extends Player {
 		setTeam(Team.values()[team - 1]);
 	}
 
-	@Override
 	@JsonProperty("web_name")
-	public void setWebName(String webName) {
+	public void setWebName_(String webName) {
 		// TODO Auto-generated method stub
 		super.setWebName(webName);
 	}
 
-	@Override
 	@JsonProperty("first_name")
-	public void setFirstName(String firstName) {
+	public void setFirstName_(String firstName) {
 		// TODO Auto-generated method stub
 		super.setFirstName(firstName);
 	}
 
-	@Override
 	@JsonProperty("second_name")
-	public void setLastName(String lastName) {
+	public void setLastName_(String lastName) {
 		// TODO Auto-generated method stub
 		super.setLastName(lastName);
 	}
 
-	@Override
 	@JsonProperty("chance_of_playing_this_round")
-	public void setChanceOfPlayingThisRound(Integer chanceOfPlayingThisRound) {
+	public void setChanceOfPlayingThisRound_(Integer chanceOfPlayingThisRound) {
 		// TODO Auto-generated method stub
 		super.setChanceOfPlayingThisRound(chanceOfPlayingThisRound);
 	}
 
-	@Override
 	@JsonProperty("chance_of_playing_next_round")
-	public void setChanceOfPlayingNextRound(Integer chanceOfPlayingNextRound) {
+	public void setChanceOfPlayingNextRound_(Integer chanceOfPlayingNextRound) {
 		// TODO Auto-generated method stub
 		super.setChanceOfPlayingNextRound(chanceOfPlayingNextRound);
 	}

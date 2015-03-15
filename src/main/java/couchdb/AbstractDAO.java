@@ -24,14 +24,16 @@ import java.util.Set;
 
 import javax.ws.rs.core.MediaType;
 
-import couchdb.SimpleEntity;
+import org.apache.http.conn.ConnectionPoolTimeoutException;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Supplier;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientHandlerException;
 import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.WebResource.Builder;
 
@@ -50,6 +52,7 @@ public abstract class AbstractDAO<EntityType extends SimpleEntity> {
 	private static final String VIEW_ACCESS_SUFFIX = "/_view/";
 	private static final String REPLICA_SUFFIX = "";
 	private static final String REPLICATE = "_replicate";
+	private static final Integer MAX_NUMBER_OF_ATTEMPTS = 10;
 
 	private final WebResource replicatorResource;
 	private final WebResource ourDbResource;
@@ -115,10 +118,12 @@ public abstract class AbstractDAO<EntityType extends SimpleEntity> {
 	 */
 	protected WebResource getResource() {
 		WebResource resource;
+		ClientResponse clientResponse=null;
+		ClientResponse clientResponseBackup=null;
 		try {
 			// simple get will throw a ClientHandlerException if resource is
 			// unavailable
-			ourDbResource.get(ClientResponse.class);
+			clientResponse = ourDbResource.get(ClientResponse.class);
 			resource = ourDbResource;
 			// If the main db was previously down, restart replication service
 			if (mainDbDown) {
@@ -128,8 +133,12 @@ public abstract class AbstractDAO<EntityType extends SimpleEntity> {
 			}
 		} catch (ClientHandlerException e) {
 			mainDbDown = true;
-			ourBackupDbResource.get(ClientResponse.class);
+			clientResponseBackup=ourBackupDbResource.get(ClientResponse.class);
 			resource = ourBackupDbResource;
+		}
+		finally{
+			if (clientResponse!=null) clientResponse.close();
+			if (clientResponseBackup!=null) clientResponseBackup.close();
 		}
 		return resource;
 	}
@@ -160,10 +169,8 @@ public abstract class AbstractDAO<EntityType extends SimpleEntity> {
 	 *             IO exception can be formed if object does not map correctly
 	 */
 	public EntityType forceSaveEntity(final EntityType entity) throws IOException {
-		EntityType existingResponse = getEntity(entity.getId());
-		if (existingResponse != null) {
-			injectIntoEntity(existingResponse, entity);
-		}
+		Entity existingResponse = get(entity.getId(), Entity.class);
+		injectIntoEntity(existingResponse, entity);
 
 		return save(entity);
 	}
@@ -178,13 +185,16 @@ public abstract class AbstractDAO<EntityType extends SimpleEntity> {
 	 *             IOException can be formed if object does not map correctly
 	 */
 	private <SaveEntityType extends SimpleEntity> SaveEntityType save(final SaveEntityType entity) throws IOException {
-		WebResource entityUrl = getResource().path(entity.getId());
-		String string = getMapper().writeValueAsString(entity);
-		ClientResponse response = entityUrl.put(ClientResponse.class, string);
-		String respString = response.getEntity(String.class);
-		EntityResponse entityResponse = getMapper().readValue(respString, EntityResponse.class);
-		injectIntoEntity(entityResponse, entity);
-		return entity;
+		return protect(() -> {
+			WebResource entityUrl = getResource().path(entity.getId());
+			String string = getMapper().writeValueAsString(entity);
+			ClientResponse response = entityUrl.put(ClientResponse.class, string);
+			String respString = response.getEntity(String.class);
+			EntityResponse entityResponse = getMapper().readValue(respString, EntityResponse.class);
+			injectIntoEntity(entityResponse, entity);
+			response.close();
+			return entity;
+		});
 	}
 
 	/**
@@ -192,8 +202,9 @@ public abstract class AbstractDAO<EntityType extends SimpleEntity> {
 	 *            the ID of the entity we're grabbing
 	 * @return the grabbed person, returns null if no person was found for the
 	 *         given id
+	 * @throws IOException 
 	 */
-	public EntityType getEntity(final String entityId) {
+	public EntityType getEntity(final String entityId) throws UniformInterfaceException, ClientHandlerException, IOException {
 		return get(entityId, entityType);
 
 	}
@@ -207,27 +218,32 @@ public abstract class AbstractDAO<EntityType extends SimpleEntity> {
 	 *            the return type
 	 * @return returns the result from the couchDB database mapped as the
 	 *         provided entity type
+	 * @throws IOException 
 	 */
 	private <GetEntityType extends SimpleEntity> GetEntityType get(
 			final String entityId,
-			final Class<GetEntityType> entityTypeForResult) {
-		WebResource entityUrl = getResource().path(entityId);
-		ClientResponse response = entityUrl.get(ClientResponse.class);
-		String string = response.getEntity(String.class);
-		GetEntityType entity;
-		try {
-			entity = getMapper().readValue(string, entityTypeForResult);
-		} catch (IOException ioException) {
-			ioException.printStackTrace();
-			entity = null;
-		}
-		return entity;
+			final Class<GetEntityType> entityTypeForResult) throws IOException {
+		return protect(() -> {
+			WebResource entityUrl = getResource().path(entityId);
+			ClientResponse response = entityUrl.get(ClientResponse.class);
+			String string = response.getEntity(String.class);
+			GetEntityType entity;
+			try {
+				entity = getMapper().readValue(string, entityTypeForResult);
+			} catch (IOException ioException) {
+				ioException.printStackTrace();
+				entity = null;
+			}
+			response.close();
+			return entity;
+		});
 	}
 
 	/**
 	 * @return the current views on the database for the DAO
+	 * @throws IOException 
 	 */
-	protected Views<EntityType> getViews() {
+	protected Views<EntityType> getViews() throws IOException {
 		@SuppressWarnings("unchecked")
 		Views<EntityType> views = get(viewsId, Views.class);
 		if (views == null) {
@@ -253,8 +269,9 @@ public abstract class AbstractDAO<EntityType extends SimpleEntity> {
 	/**
 	 * @param fields
 	 *            the fields to create indexes for
+	 * @throws IOException 
 	 */
-	protected void createIndexes(final Collection<String> fields) {
+	protected void createIndexes(final Collection<String> fields) throws IOException {
 		Views<EntityType> views = getViews();
 		views.getViews().putAll(CouchDbUtilities.generateIndexesForFields(fields));
 		try {
@@ -291,6 +308,7 @@ public abstract class AbstractDAO<EntityType extends SimpleEntity> {
 		String string = response.getEntity(String.class);
 		QueryResponse<EntityType> queryResponse = getMapper().readValue(string, getTypeReferenceForResponse());
 		List<EntityType> entities = CouchDbUtilities.getEntitiesFromQueryReponse(queryResponse);
+		response.close();
 		return entities;
 	}
 
@@ -352,7 +370,35 @@ public abstract class AbstractDAO<EntityType extends SimpleEntity> {
 	 *
 	 */
 	private void injectIntoEntity(final SimpleEntity injectingEntity, final SimpleEntity injectIntoEntity) {
-		injectIntoEntity.setId(injectingEntity.getId());
-		injectIntoEntity.setRevision(injectingEntity.getRevision());
+		if (injectingEntity.getId() != null)
+			injectIntoEntity.setId(injectingEntity.getId());
+		if (injectingEntity.getRevision() != null)
+			injectIntoEntity.setRevision(injectingEntity.getRevision());
+	}
+
+	private interface Supplier<T> {
+		T get() throws IOException;
+	}
+
+	private <T> T protect(Supplier<T> supplier) throws IOException {
+		return protect(supplier, 0);
+	}
+
+	private <T> T protect(Supplier<T> supplier, Integer numberOfAttempts) throws IOException {
+		try {
+			return supplier.get();
+
+		} catch (ClientHandlerException e) {
+			if (e.getCause() instanceof ConnectionPoolTimeoutException && numberOfAttempts < MAX_NUMBER_OF_ATTEMPTS) {
+				System.out.println("sleeping" + numberOfAttempts);
+				try {
+					Thread.sleep(100);
+				} catch (InterruptedException e1) {
+					throw new RuntimeException(e1);
+				}
+				return protect(supplier, numberOfAttempts+1);
+			} else
+				throw e;
+		}
 	}
 }

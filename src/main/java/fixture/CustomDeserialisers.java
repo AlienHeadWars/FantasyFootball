@@ -57,30 +57,35 @@ public final class CustomDeserialisers {
 	}
 
 	static enum DoUntoFixtureHistory {
-		FIXTUREDATE((j, f) -> doUnto(0, j, f::setFixtureDate, CustomDeserialisers::getFixureDateProperty)),
-		GAMESEQUENCE((j, f) -> doUnto(1, j, f::setGameSequence, CustomDeserialisers::getIntegerProperty)),
-		RESULT((j, f) -> doUnto(2, j, f::setResult, CustomDeserialisers::getStringProperty)),
-		MINUTESPLAYED((j, f) -> doUnto(3, j, f::setMinutesPlayed, CustomDeserialisers::getIntegerProperty)),
-		GOALSCORED((j, f) -> doUnto(4, j, f::setGoalScored, CustomDeserialisers::getIntegerProperty)),
-		ASSISTS((j, f) -> doUnto(5, j, f::setAssists, CustomDeserialisers::getIntegerProperty)),
-		CLEANSHEETS((j, f) -> doUnto(6, j, f::setCleanSheets, CustomDeserialisers::getIntegerProperty)),
-		OWNGOALS((j, f) -> doUnto(7, j, f::setOwnGoals, CustomDeserialisers::getIntegerProperty)),
-		PENALTIESSAVED((j, f) -> doUnto(8, j, f::setPenaltiesSaved, CustomDeserialisers::getIntegerProperty)),
-		PENALTIESMADE((j, f) -> doUnto(9, j, f::setPenaltiesMade, CustomDeserialisers::getIntegerProperty)),
-		YELLOWCARDS((j, f) -> doUnto(10, j, f::setYellowCards, CustomDeserialisers::getIntegerProperty)),
-		REDCARDS((j, f) -> doUnto(11, j, f::setRedCards, CustomDeserialisers::getIntegerProperty)),
-		SAVES((j, f) -> doUnto(12, j, f::setSaves, CustomDeserialisers::getIntegerProperty)),
-		BONUSPOINTS((j, f) -> doUnto(13, j, f::setBonusPoints, CustomDeserialisers::getIntegerProperty)),
-		EASPORTSPPI((j, f) -> doUnto(14, j, f::setEaSportsPPI, CustomDeserialisers::getIntegerProperty)),
-		BONUSPOINTSSYSTEM((j, f) -> doUnto(15, j, f::setBonusPointsSystem, CustomDeserialisers::getIntegerProperty)),
-		NETTRANSFERS((j, f) -> doUnto(16, j, f::setNetTransfers, CustomDeserialisers::getIntegerProperty)),
-		VALUE((j, f) -> doUnto(17, j, f::setValue, CustomDeserialisers::getIntegerProperty)),
-		POINTS((j, f) -> doUnto(18, j, f::setPoints, CustomDeserialisers::getIntegerProperty));
+		FIXTUREDATE(FixtureHistory::setFixtureDate, CustomDeserialisers::getFixureDateProperty),
+		GAMESEQUENCE(FixtureHistory::setGameSequence, CustomDeserialisers::getIntegerProperty),
+		RESULT(FixtureHistory::setResult, CustomDeserialisers::getStringProperty),
+		MINUTESPLAYED(FixtureHistory::setMinutesPlayed, CustomDeserialisers::getIntegerProperty),
+		GOALSCORED(FixtureHistory::setGoalsScored, CustomDeserialisers::getIntegerProperty),
+		GOALSCONCECED(FixtureHistory::setGoalsConceded, CustomDeserialisers::getIntegerProperty),
+		ASSISTS(FixtureHistory::setAssists, CustomDeserialisers::getIntegerProperty),
+		CLEANSHEETS(FixtureHistory::setCleanSheets, CustomDeserialisers::getIntegerProperty),
+		OWNGOALS(FixtureHistory::setOwnGoals, CustomDeserialisers::getIntegerProperty),
+		PENALTIESSAVED(FixtureHistory::setPenaltiesSaved, CustomDeserialisers::getIntegerProperty),
+		PENALTIESMADE(FixtureHistory::setPenaltiesMade, CustomDeserialisers::getIntegerProperty),
+		YELLOWCARDS(FixtureHistory::setYellowCards, CustomDeserialisers::getIntegerProperty),
+		REDCARDS(FixtureHistory::setRedCards, CustomDeserialisers::getIntegerProperty),
+		SAVES(FixtureHistory::setSaves, CustomDeserialisers::getIntegerProperty),
+		BONUSPOINTS(FixtureHistory::setBonusPoints, CustomDeserialisers::getIntegerProperty),
+		EASPORTSPPI(FixtureHistory::setEaSportsPPI, CustomDeserialisers::getIntegerProperty),
+		BONUSPOINTSSYSTEM(FixtureHistory::setBonusPointsSystem, CustomDeserialisers::getIntegerProperty),
+		NETTRANSFERS(FixtureHistory::setNetTransfers, CustomDeserialisers::getIntegerProperty),
+		VALUE(FixtureHistory::setValue, CustomDeserialisers::getIntegerProperty),
+		POINTS(FixtureHistory::setPoints, CustomDeserialisers::getIntegerProperty);
 
 		public BiConsumer<JsonNode, FixtureHistory> doUnto;
 
-		private DoUntoFixtureHistory(BiConsumer<JsonNode, FixtureHistory> doUnto) {
-			this.doUnto = doUnto;
+//		private DoUntoFixtureHistory(BiConsumer<JsonNode, FixtureHistory> doUnto) {
+//			this.doUnto = doUnto;
+//		}
+
+		private <T> DoUntoFixtureHistory(BiConsumer<FixtureHistory,T> consumer, ExtractFromJson<T> extract) {
+			this.doUnto = (j, f) -> doUnto(this.ordinal(), j, o -> consumer.accept(f,o), extract);
 		}
 
 		private static <T> void doUnto(

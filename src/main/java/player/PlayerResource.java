@@ -10,6 +10,8 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import org.apache.http.conn.ConnectTimeoutException;
+
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientHandlerException;
 import com.sun.jersey.api.client.ClientResponse;
@@ -28,14 +30,39 @@ public class PlayerResource {
 		String couchDbUrl = "http://127.0.0.1:5984/";
 		playerDAO = new PlayerDAO(client, couchDbUrl);
 		playerMap = new HashMap<>();
+		try {
+			populatePlayersFromDB();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
+	
+	@GET
+	@Path("/all")
+	public Map getPlayers() throws IOException {
+		return playerMap;
+	}
+	
+	private void populatePlayersFromDB() throws IOException {
+		Player player=new Player();
+		Integer playerId = 1;
+		while (player != null ) {
+			player=playerDAO.getEntity(playerId.toString());
+			playerMap.put(playerId, player);
+			System.out.println(playerId);
+			playerId++;
+		}
+	}
+	
 	@GET
 	@Path("/updateFromFF")
 	public Map populatePlayers() throws IOException {
 		ClientResponse clientResponse = null;
 		Integer playerId = 1;
-		while (playerId < 10 && (clientResponse == null || clientResponse.getStatus() != 404)) {
+		Integer fails=0;
+		while (clientResponse == null || clientResponse.getStatus() != 404) {
 			try {
 				clientResponse = playersResource.path(playerId.toString()).get(ClientResponse.class);
 				if (clientResponse.getStatus() != 404) {
@@ -44,11 +71,15 @@ public class PlayerResource {
 					playerDAO.forceSaveEntity(player);
 					playerId++;
 					System.out.println(playerId);
+					fails=0;
 				}
 			} catch (ClientHandlerException e) {
-				if (e.getCause() instanceof SocketTimeoutException) {
+				fails++;
+				if (fails<10 && (e.getCause() instanceof SocketTimeoutException 
+						|| e.getCause() instanceof ConnectTimeoutException
+						)) {
 					e.printStackTrace();
-					System.out.println("sleeping");
+					System.out.println("sleeping"+fails);
 					try {
 						Thread.sleep(100);
 					} catch (InterruptedException e1) {

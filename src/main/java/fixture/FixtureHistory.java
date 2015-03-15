@@ -5,7 +5,7 @@ import java.util.Date;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
-@JsonDeserialize(using = FixtureHistoryDeserialiser.class)
+//@JsonDeserialize(using = FixtureHistoryDeserialiser.class)
 public class FixtureHistory {
 
 	// private Fixture fixture;
@@ -14,6 +14,7 @@ public class FixtureHistory {
 	private String result;
 	private Integer minutesPlayed;
 	private Integer goalScored;
+	private Integer goalsConceded;
 	private Integer assists;
 	private Integer cleanSheets;
 	private Integer ownGoals;
@@ -66,7 +67,7 @@ public class FixtureHistory {
 		return goalScored;
 	}
 
-	public void setGoalScored(Integer goalScored) {
+	public void setGoalsScored(Integer goalScored) {
 		this.goalScored = goalScored;
 	}
 
@@ -180,6 +181,14 @@ public class FixtureHistory {
 
 	public void setPoints(Integer points) {
 		this.points = points;
+	}
+
+	public Integer getGoalsConceded() {
+		return goalsConceded;
+	}
+
+	public void setGoalsConceded(Integer goalsConceded) {
+		this.goalsConceded = goalsConceded;
 	}
 
 }
