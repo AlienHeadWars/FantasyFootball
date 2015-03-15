@@ -1,14 +1,14 @@
-package main.player;
+package player;
 
-import static main.utilities.CommonValues.NOT_SET_INTEGER;
-import static main.utilities.CommonValues.NOT_SET_STRING;
+import static utilities.CommonValues.NOT_SET_INTEGER;
+import static utilities.CommonValues.NOT_SET_STRING;
 
 import java.util.ArrayList;
 import java.util.Collection;
 
-import main.couchdb.Entity;
-import main.fixture.Fixture;
-import main.fixture.FixtureHistory;
+import couchdb.Entity;
+import fixture.Fixture;
+import fixture.FixtureHistory;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;

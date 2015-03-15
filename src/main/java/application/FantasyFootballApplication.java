@@ -1,8 +1,8 @@
-package main.application;
+package application;
 
 import com.sun.jersey.api.client.Client;
 
-import main.player.PlayerResource;
+import player.PlayerResource;
 import io.dropwizard.Application;
 import io.dropwizard.client.JerseyClientBuilder;
 import io.dropwizard.setup.Bootstrap;

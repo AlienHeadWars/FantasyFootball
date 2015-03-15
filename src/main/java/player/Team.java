@@ -1,4 +1,4 @@
-package main.player;
+package player;
 
 public enum Team {
 	ARSENAL,

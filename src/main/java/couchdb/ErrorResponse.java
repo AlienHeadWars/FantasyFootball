@@ -1,4 +1,4 @@
-package main.couchdb;
+package couchdb;
 
 public class ErrorResponse {
 

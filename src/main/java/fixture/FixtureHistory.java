@@ -1,4 +1,4 @@
-package main.fixture;
+package fixture;
 
 import java.util.Date;
 

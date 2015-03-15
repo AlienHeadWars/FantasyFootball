@@ -1,4 +1,4 @@
-package main.couchdb;
+package couchdb;
 
 import java.util.function.Function;
 

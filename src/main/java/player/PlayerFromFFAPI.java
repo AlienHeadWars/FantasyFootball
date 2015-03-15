@@ -1,10 +1,10 @@
-package main.player;
+package player;
 
 import java.util.Collection;
 
-import main.fixture.Fixture;
-import main.fixture.FixtureHistory;
-import main.utilities.CustomDeserialisers;
+import fixture.Fixture;
+import fixture.FixtureHistory;
+import utilities.CustomDeserialisers;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;

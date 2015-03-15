@@ -1,8 +1,8 @@
-package main.fixture;
+package fixture;
 
 import java.util.Date;
 
-import main.player.Team;
+import player.Team;
 
 public class Fixture {
 	private Date fixtureDate;

@@ -1,4 +1,4 @@
-package main.player;
+package player;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -11,7 +11,7 @@ import javax.ws.rs.core.MediaType;
 
 import org.apache.http.conn.ConnectTimeoutException;
 
-import main.couchdb.DAO;
+import couchdb.DAO;
 
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientHandlerException;

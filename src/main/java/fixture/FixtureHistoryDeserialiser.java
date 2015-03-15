@@ -1,4 +1,4 @@
-package main.fixture;
+package fixture;
 
 import java.io.IOException;
 
@@ -8,7 +8,7 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
 
-import static main.utilities.CustomDeserialisers.toFixtureHistory;
+import static utilities.CustomDeserialisers.toFixtureHistory;
 
 public class FixtureHistoryDeserialiser extends JsonDeserializer<FixtureHistory>{
 

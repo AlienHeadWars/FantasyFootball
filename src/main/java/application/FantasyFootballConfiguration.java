@@ -1,4 +1,4 @@
-package main.application;
+package application;
 
 import io.dropwizard.Configuration;
 
