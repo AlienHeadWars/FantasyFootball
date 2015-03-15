@@ -1,4 +1,4 @@
-package main.java.utilities;
+package main.utilities;
 
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -14,7 +14,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Lists;
 
 import main.fixture.FixtureHistory;
-import static main.java.utilities.CommonValues.*;
+import static main.utilities.CommonValues.*;
 
 public final class CustomDeserialisers {
 

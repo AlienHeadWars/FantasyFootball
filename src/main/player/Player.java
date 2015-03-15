@@ -1,7 +1,7 @@
 package main.player;
 
-import static main.java.utilities.CommonValues.NOT_SET_INTEGER;
-import static main.java.utilities.CommonValues.NOT_SET_STRING;
+import static main.utilities.CommonValues.NOT_SET_INTEGER;
+import static main.utilities.CommonValues.NOT_SET_STRING;
 
 import java.util.ArrayList;
 import java.util.Collection;

@@ -4,7 +4,7 @@ import java.util.Collection;
 
 import main.fixture.Fixture;
 import main.fixture.FixtureHistory;
-import main.java.utilities.CustomDeserialisers;
+import main.utilities.CustomDeserialisers;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;

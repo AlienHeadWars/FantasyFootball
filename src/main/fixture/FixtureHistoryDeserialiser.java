@@ -8,7 +8,7 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
 
-import static main.java.utilities.CustomDeserialisers.toFixtureHistory;
+import static main.utilities.CustomDeserialisers.toFixtureHistory;
 
 public class FixtureHistoryDeserialiser extends JsonDeserializer<FixtureHistory>{
 
