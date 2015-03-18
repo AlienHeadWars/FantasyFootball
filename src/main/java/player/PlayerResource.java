@@ -100,6 +100,22 @@ public class PlayerResource {
 		return list;
 
 	}
+	@Path("/last8")
+	@GET
+	public Object last8() {
+		Map<String, Integer> map = new HashMap<>();
+		playerMap.forEach((k, v) -> map.put(
+				v.getWebName(),
+				valueFromLastX(2, v.getPlayerGames())
+						+ valueFromLastX(4, v.getPlayerGames())
+						+ valueFromLastX(8, v.getPlayerGames())
+						));
+		List<Entry<String, Integer>> list = new ArrayList(map.entrySet());
+		Collections.sort(list,
+				(e1, e2) -> -e1.getValue().compareTo(e2.getValue()));
+		return list;
+
+	}
 	private Integer valueFromLastX(Integer numberOfGames,
 			Collection<FixtureHistory> fixtureHistory
 	// ,
