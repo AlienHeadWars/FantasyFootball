@@ -3,7 +3,9 @@ package player;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.google.common.collect.Lists;
@@ -28,6 +30,13 @@ public class AdvancedStatUtilities {
 	// private Double nextGameWeighted;
 	// private Double totalNext5GameWeeks;
 	// private Double totalRemaining;
+	public static void setPredictionsForPlayers(Collection<Player> players){
+		Map<String, Map<PositionType, Collection<Double>>> teamMap= new HashMap<>();
+		players.forEach(player->player.getPlayerGames().forEach(game->{
+			game.getResult().substring(0, 5);
+			
+		}));
+	}
 	public static AdvancedStats getAdvancedStatsForPlayer(Player player) {
 
 		AdvancedStats advancedStats = new AdvancedStats();
