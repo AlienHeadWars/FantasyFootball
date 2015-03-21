@@ -54,6 +54,23 @@ public class PlayerResource {
 		return playerMap;
 	}
 
+	@GET
+	@Path("/stats")
+	public List getPlayerStats() throws IOException {
+		return playerMap
+				.values()
+				.stream()
+				.collect(
+						Collectors.toMap(player -> player.getWebName(),
+								Player::getAdvancedStats, (p1, p2) -> p1))
+				.entrySet()
+				.stream()
+				.sorted((e1, e2) -> -e1.getValue().getAverageAverage()
+						.compareTo(e2.getValue().getAverageAverage()))
+				.collect(Collectors.toList());
+
+	}
+
 	private void populatePlayersFromDB() throws IOException {
 		Integer playerId = 1;
 		Player player = playerDAO.getEntity(playerId.toString());
@@ -75,14 +92,14 @@ public class PlayerResource {
 						+ valueFromLastX(4, v.getPlayerGames())
 						+ valueFromLastX(8, v.getPlayerGames())
 						+ valueFromLastX(16, v.getPlayerGames())
-						+ valueFromLastX(32, v.getPlayerGames())
-						));
+						+ valueFromLastX(32, v.getPlayerGames())));
 		List<Entry<String, Integer>> list = new ArrayList(map.entrySet());
 		Collections.sort(list,
 				(e1, e2) -> -e1.getValue().compareTo(e2.getValue()));
 		return list;
 
 	}
+
 	@Path("/last16")
 	@GET
 	public Object last16() {
@@ -92,14 +109,14 @@ public class PlayerResource {
 				valueFromLastX(2, v.getPlayerGames())
 						+ valueFromLastX(4, v.getPlayerGames())
 						+ valueFromLastX(8, v.getPlayerGames())
-						+ valueFromLastX(16, v.getPlayerGames())
-						));
+						+ valueFromLastX(16, v.getPlayerGames())));
 		List<Entry<String, Integer>> list = new ArrayList(map.entrySet());
 		Collections.sort(list,
 				(e1, e2) -> -e1.getValue().compareTo(e2.getValue()));
 		return list;
 
 	}
+
 	@Path("/last8")
 	@GET
 	public Object last8() {
@@ -108,21 +125,22 @@ public class PlayerResource {
 				v.getWebName(),
 				valueFromLastX(2, v.getPlayerGames())
 						+ valueFromLastX(4, v.getPlayerGames())
-						+ valueFromLastX(8, v.getPlayerGames())
-						));
+						+ valueFromLastX(8, v.getPlayerGames())));
 		List<Entry<String, Integer>> list = new ArrayList(map.entrySet());
 		Collections.sort(list,
 				(e1, e2) -> -e1.getValue().compareTo(e2.getValue()));
 		return list;
 
 	}
+
 	private Integer valueFromLastX(Integer numberOfGames,
 			Collection<FixtureHistory> fixtureHistory
 	// ,
 	// Function<FixtureHistory, Integer> mapFunction
 	) {
 		List<FixtureHistory> list = new ArrayList<>(fixtureHistory);
-		list=list.stream().filter(f->f.getMinutesPlayed()>0).collect(Collectors.toList());
+		list = list.stream().filter(f -> f.getMinutesPlayed() > 0)
+				.collect(Collectors.toList());
 		Collections.sort(list,
 				(c1, c2) -> c1.getFixtureDate().compareTo(c2.getFixtureDate()));
 		return list
@@ -146,6 +164,8 @@ public class PlayerResource {
 					Player player = clientResponse
 							.getEntity(PlayerFromFFAPI.class);
 					playerMap.put(playerId, player);
+					player.setAdvancedStats(AdvancedStatUtilities
+							.getAdvancedStatsForPlayer(player));
 					playerDAO.forceSaveEntity(player);
 					playerId++;
 					System.out.println(playerId);
