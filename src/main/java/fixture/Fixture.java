@@ -6,8 +6,26 @@ import player.Team;
 
 public class Fixture {
 	private Date fixtureDate;
-	private Team homeTeam;
-	private Integer homeScore;
-	private Team awayTeam;
-	private Integer awayScore;
+	private String against;
+	private Integer gameSequence;
+	
+	public Date getFixtureDate() {
+		return fixtureDate;
+	}
+	public void setFixtureDate(Date fixtureDate) {
+		this.fixtureDate = fixtureDate;
+	}
+	public String getAgainst() {
+		return against;
+	}
+	public void setAgainst(String against) {
+		this.against = against;
+	}
+	public Integer getGameSequence() {
+		return gameSequence;
+	}
+	public void setGameSequence(Integer gameSequence) {
+		this.gameSequence = gameSequence;
+	}
+
 }

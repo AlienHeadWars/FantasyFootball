@@ -24,7 +24,7 @@ public class Player extends SimpleEntity{
 	private String lastName = NOT_SET_STRING;
 	private Integer chanceOfPlayingThisRound = NOT_SET_INTEGER;
 	private Integer chanceOfPlayingNextRound = NOT_SET_INTEGER;
-	private JsonNode playerFixturesJson;
+	private AdvancedStats advancedStats;
 
 	public Player() {
 		super();
@@ -48,11 +48,6 @@ public class Player extends SimpleEntity{
 	@JsonProperty("playerFixtures")
 	public Collection<Fixture> getPlayerFixtures() {
 		return playerFixtures;
-	}
-
-	@JsonProperty("playerFixturesJSON")
-	public JsonNode getPlayerFixturesJson() {
-		return playerFixturesJson;
 	}
 
 	@JsonProperty("type")
@@ -120,8 +115,12 @@ public class Player extends SimpleEntity{
 		this.chanceOfPlayingNextRound = chanceOfPlayingNextRound;
 	}
 
-	public void setPlayerFixturesJson(JsonNode playerFixturesJson) {
-		this.playerFixturesJson = playerFixturesJson;
+	public AdvancedStats getAdvancedStats() {
+		return advancedStats;
+	}
+
+	public void setAdvancedStats(AdvancedStats advancedStats) {
+		this.advancedStats = advancedStats;
 	}
 
 }

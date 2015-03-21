@@ -36,7 +36,10 @@ public class PlayerFromFFAPI extends Player {
 
 	@JsonProperty("fixtures")
 	public void setPlayerFixturesJson_(JsonNode node) {
-		super.setPlayerFixturesJson(node.get("all"));
+		JsonNode allGames = node.get("all");
+		allGames.elements().forEachRemaining(
+				g -> getPlayerFixtures().add(
+						CustomDeserialisers.toFixture(g)));
 	}
 
 	@JsonIgnore
