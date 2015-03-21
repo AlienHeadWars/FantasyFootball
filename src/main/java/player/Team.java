@@ -32,9 +32,9 @@ public enum Team {
 	QUEENS_PARK_RANGERS(
 			"QPR", "QPR"),
 	SOUTHAMPTON(
-			"Southhampton", "SOU"),
+			"Southampton", "SOU"),
 	STOKE(
-			"Soke", "STK"),
+			"Stoke", "STK"),
 	SWANSEA(
 			"Swansea", "SWA"),
 	SUNDERLAND(

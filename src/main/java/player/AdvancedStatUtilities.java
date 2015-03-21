@@ -8,10 +8,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.ToDoubleFunction;
 import java.util.function.ToIntFunction;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import com.google.common.collect.Lists;
 
+import fixture.Fixture;
 import fixture.FixtureHistory;
 
 public class AdvancedStatUtilities {
@@ -37,11 +39,11 @@ public class AdvancedStatUtilities {
 		Map<String, Map<PositionType, AdvancedTeamStats>> teamMap = new HashMap<>();
 
 		Lists.newArrayList(Team.values()).forEach(team -> {
-			String homeName = team.getShortName() + "(H)";
+			String homeName = team.getTeamName() + " (H)";
 
 			System.out.println("making map for " + homeName);
 			teamMap.put(homeName, new HashMap<>());
-			String awayName = team.getShortName() + "(A)";
+			String awayName = team.getTeamName() + " (A)";
 			teamMap.put(awayName, new HashMap<>());
 			Lists.newArrayList(PositionType.values()).forEach(position -> {
 				teamMap.get(homeName).put(position, new AdvancedTeamStats());
@@ -58,6 +60,11 @@ public class AdvancedStatUtilities {
 				.forEach(
 						game -> {
 							String key = game.getResult().substring(0, 6);
+							String teamAgainst = game.getResult().substring(0, 3);
+							key =
+									key.replace(teamAgainst, Team
+											.getByShortName(teamAgainst)
+											.getTeamName() + " ");
 							System.out.println("crunching stats from "
 									+ player.getWebName()
 									+ " against "
@@ -65,9 +72,11 @@ public class AdvancedStatUtilities {
 							AdvancedTeamStats advancedTeamStats =
 									teamMap.get(key).get(player.getType());
 							advancedTeamStats.getPointsScoredAgainst().add(game.getPoints());
-							advancedTeamStats.getPointsWeightings().add(
+							Double pointsDivAverage =
 									game.getPoints()
-											/ player.getAdvancedStats().getPointsPerPlayedGame());
+											/ player.getAdvancedStats().getPointsPerPlayedGame();
+							advancedTeamStats.getPointsWeightings().add(
+									pointsDivAverage.equals(Double.NaN) ? 1 : pointsDivAverage);
 						}));
 		return teamMap;
 	}
@@ -164,4 +173,39 @@ public class AdvancedStatUtilities {
 				.collect(Collectors.averagingDouble(toDoubleFunction));
 	}
 
+	public static void populatePlayerPredictions(
+			Map<String, Map<PositionType, AdvancedTeamStats>> teamWeights,
+			Collection<Player> values) {
+		values.forEach(player -> {
+			AdvancedPlayerStats advancedStats = player.getAdvancedStats();
+			player
+					.getPlayerFixtures()
+					.stream()
+					.filter(fixture -> !"-".equals(fixture.getAgainst()))
+					.forEach(
+							fixture -> advancedStats.getGamePredictions().put(
+									fixture,
+									advancedStats.getAverageAverage()
+											* teamWeights
+													.get(fixture.getAgainst())
+													.get(player.getType())
+													.getAveragePointsWeighting()));
+
+			Fixture firstKey = advancedStats.getGamePredictions().firstKey();
+			Double nextGameWeighted = advancedStats.getGamePredictions().get(firstKey);
+			advancedStats.setNextGameWeighted(nextGameWeighted);
+			advancedStats.setTotalRemaining(advancedStats
+					.getGamePredictions()
+					.values()
+					.stream()
+					.collect(Collectors.summingDouble(d -> d)));
+			advancedStats.setTotalNext5GameWeeks(advancedStats
+					.getGamePredictions()
+					.entrySet()
+					.stream()
+					.filter((e) -> e.getKey().getGameSequence() < firstKey.getGameSequence() + 5)
+					.collect(Collectors.summingDouble(e -> e.getValue())));
+		});
+
+	}
 }

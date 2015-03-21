@@ -1,6 +1,14 @@
 package player;
 
+import java.util.Map;
 import java.util.SortedMap;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import fixture.Fixture;
 
 public class AdvancedPlayerStats {
 
@@ -17,7 +25,9 @@ public class AdvancedPlayerStats {
 	private Double averagePointsLast8PlayedGames;
 	private Double averagePointsLast16PlayedGames;
 	private Double averageAverage;
-	private SortedMap<Integer, Double> gamePredictions;
+	@JsonIgnore
+	private SortedMap<Fixture, Double> gamePredictions = new TreeMap<Fixture, Double>(
+			(f1, f2) -> f1.getFixtureDate().compareTo(f2.getFixtureDate()));
 	private Double nextGameWeighted;
 	private Double totalNext5GameWeeks;
 	private Double totalRemaining;
@@ -126,12 +136,24 @@ public class AdvancedPlayerStats {
 		this.averageAverage = averageAverage;
 	}
 
-	public SortedMap<Integer, Double> getGamePredictions() {
+	public SortedMap<Fixture, Double> getGamePredictions() {
 		return gamePredictions;
 	}
 
-	public void setGamePredictions(SortedMap<Integer, Double> gamePredictions) {
+	public void setGamePredictions(SortedMap<Fixture, Double> gamePredictions) {
 		this.gamePredictions = gamePredictions;
+	}
+
+	@JsonProperty
+	public Map<String, Double> getPredictions() {
+		return gamePredictions
+				.entrySet()
+				.stream()
+				.collect(Collectors.toMap(e -> e.getKey().getAgainst(), e -> e.getValue()));
+	}
+
+	@JsonIgnore
+	public void setPredictions(SortedMap<Fixture, Double> gamePredictions) {
 	}
 
 	public Double getNextGameWeighted() {

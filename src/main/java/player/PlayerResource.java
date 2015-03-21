@@ -35,6 +35,7 @@ public class PlayerResource {
 	private WebResource playersResource;
 	private PlayerDAO playerDAO;
 	private Map<Integer, Player> playerMap;
+	private Map<String, Map<PositionType, AdvancedTeamStats>> teamWeights;
 
 	public PlayerResource(Client client) {
 		playersResource = client.resource("http://fantasy.premierleague.com/web/api/elements/");
@@ -43,10 +44,12 @@ public class PlayerResource {
 		playerMap = new HashMap<>();
 		try {
 			populatePlayersFromDB();
+			teamWeights = AdvancedStatUtilities.getTeamWeights(playerMap.values());
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+
 	}
 
 	@GET
@@ -65,14 +68,14 @@ public class PlayerResource {
 						Collectors.toMap(player -> player.getWebName(), Player::getAdvancedStats, (
 								p1,
 								p2) -> p1))
-								
+
 				.entrySet()
 				.stream()
 				.sorted(
 						(e1, e2) -> -e1
 								.getValue()
-								.getAverageAverage()
-								.compareTo(e2.getValue().getAverageAverage()))
+								.getNextGameWeighted()
+								.compareTo(e2.getValue().getNextGameWeighted()))
 				.collect(Collectors.toList());
 
 	}
@@ -80,27 +83,26 @@ public class PlayerResource {
 	@GET
 	@Path("/teamstats")
 	public List getTeamStats() throws IOException {
-		Map<String, Map<PositionType, AdvancedTeamStats>> teamWeights =
-				AdvancedStatUtilities.getTeamWeights(playerMap.values());
-		List<Object> collect = teamWeights
-				.entrySet()
-				.stream()
-				.flatMap(
-						teamEntry -> teamEntry
-								.getValue()
-								.entrySet()
-								.stream()
-								.map(
-										positionEntry -> new SimpleEntry<String, AdvancedTeamStats>(
-												teamEntry.getKey() + positionEntry.getKey(),
-												positionEntry.getValue())))
-				.sorted(
-						(e1, e2) -> -((AdvancedTeamStats) ((Entry) e1).getValue())
-								.getAveragePointsWeighting()
-								.compareTo(
-										((AdvancedTeamStats) ((Entry) e2).getValue())
-												.getAveragePointsWeighting()))
-				.collect(Collectors.toList());
+		List<Object> collect =
+				teamWeights
+						.entrySet()
+						.stream()
+						.flatMap(
+								teamEntry -> teamEntry
+										.getValue()
+										.entrySet()
+										.stream()
+										.map(
+												positionEntry -> new SimpleEntry<String, AdvancedTeamStats>(
+														teamEntry.getKey() + positionEntry.getKey(),
+														positionEntry.getValue())))
+						.sorted(
+								(e1, e2) -> -((AdvancedTeamStats) ((Entry) e1).getValue())
+										.getAveragePointsWeighting()
+										.compareTo(
+												((AdvancedTeamStats) ((Entry) e2).getValue())
+														.getAveragePointsWeighting()))
+						.collect(Collectors.toList());
 		return collect;
 
 	}
@@ -116,62 +118,6 @@ public class PlayerResource {
 		}
 	}
 
-	@Path("/last32")
-	@GET
-	public Object last32() {
-		Map<String, Integer> map = new HashMap<>();
-		playerMap.forEach((k, v) -> map.put(v.getWebName(), valueFromLastX(2, v.getPlayerGames())
-				+ valueFromLastX(4, v.getPlayerGames())
-				+ valueFromLastX(8, v.getPlayerGames())
-				+ valueFromLastX(16, v.getPlayerGames())
-				+ valueFromLastX(32, v.getPlayerGames())));
-		List<Entry<String, Integer>> list = new ArrayList(map.entrySet());
-		Collections.sort(list, (e1, e2) -> -e1.getValue().compareTo(e2.getValue()));
-		return list;
-
-	}
-
-	@Path("/last16")
-	@GET
-	public Object last16() {
-		Map<String, Integer> map = new HashMap<>();
-		playerMap.forEach((k, v) -> map.put(v.getWebName(), valueFromLastX(2, v.getPlayerGames())
-				+ valueFromLastX(4, v.getPlayerGames())
-				+ valueFromLastX(8, v.getPlayerGames())
-				+ valueFromLastX(16, v.getPlayerGames())));
-		List<Entry<String, Integer>> list = new ArrayList(map.entrySet());
-		Collections.sort(list, (e1, e2) -> -e1.getValue().compareTo(e2.getValue()));
-		return list;
-
-	}
-
-	@Path("/last8")
-	@GET
-	public Object last8() {
-		Map<String, Integer> map = new HashMap<>();
-		playerMap.forEach((k, v) -> map.put(v.getWebName(), valueFromLastX(2, v.getPlayerGames())
-				+ valueFromLastX(4, v.getPlayerGames())
-				+ valueFromLastX(8, v.getPlayerGames())));
-		List<Entry<String, Integer>> list = new ArrayList(map.entrySet());
-		Collections.sort(list, (e1, e2) -> -e1.getValue().compareTo(e2.getValue()));
-		return list;
-
-	}
-
-	private Integer valueFromLastX(Integer numberOfGames, Collection<FixtureHistory> fixtureHistory
-	// ,
-	// Function<FixtureHistory, Integer> mapFunction
-			) {
-		List<FixtureHistory> list = new ArrayList<>(fixtureHistory);
-		list = list.stream().filter(f -> f.getMinutesPlayed() > 0).collect(Collectors.toList());
-		Collections.sort(list, (c1, c2) -> c1.getFixtureDate().compareTo(c2.getFixtureDate()));
-		return list
-				.subList(Math.max(0, list.size() - numberOfGames), list.size())
-				.stream()
-				.collect(Collectors.summingInt(FixtureHistory::getPoints));
-
-	}
-
 	@GET
 	@Path("/updateFromFF")
 	public Map populatePlayers() throws IOException {
@@ -185,10 +131,6 @@ public class PlayerResource {
 				if (clientResponse.getStatus() != 404) {
 					Player player = clientResponse.getEntity(PlayerFromFFAPI.class);
 					playerMap.put(playerId, player);
-					player
-							.setAdvancedStats(AdvancedStatUtilities
-									.getAdvancedStatsForPlayer(player));
-					playerDAO.forceSaveEntity(player);
 					playerId++;
 					System.out.println(playerId);
 					fails = 0;
@@ -207,7 +149,27 @@ public class PlayerResource {
 					throw e;
 			}
 		}
+		recalculateStats();
+
+		playerMap.forEach((id, player) -> {
+			try {
+				playerDAO.forceSaveEntity(player);
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		});
+
 		return playerMap;
+	}
+
+	@GET
+	@Path("/recalculateStats")
+	public  List recalculateStats() throws IOException {
+		playerMap.forEach((id, player) -> player.setAdvancedStats(AdvancedStatUtilities
+				.getAdvancedStatsForPlayer(player)));
+		teamWeights = AdvancedStatUtilities.getTeamWeights(playerMap.values());
+		AdvancedStatUtilities.populatePlayerPredictions(teamWeights, playerMap.values());
+		return getPlayerStats();
 	}
 
 	@GET
