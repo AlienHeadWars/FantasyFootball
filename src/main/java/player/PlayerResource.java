@@ -2,6 +2,7 @@ package player;
 
 import java.io.IOException;
 import java.net.SocketTimeoutException;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -19,6 +20,7 @@ import javax.ws.rs.core.MediaType;
 
 import org.apache.http.conn.ConnectTimeoutException;
 
+import com.google.common.collect.Maps;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientHandlerException;
 import com.sun.jersey.api.client.ClientResponse;
@@ -35,8 +37,7 @@ public class PlayerResource {
 	private Map<Integer, Player> playerMap;
 
 	public PlayerResource(Client client) {
-		playersResource = client
-				.resource("http://fantasy.premierleague.com/web/api/elements/");
+		playersResource = client.resource("http://fantasy.premierleague.com/web/api/elements/");
 		String couchDbUrl = "http://127.0.0.1:5984/";
 		playerDAO = new PlayerDAO(client, couchDbUrl);
 		playerMap = new HashMap<>();
@@ -61,13 +62,46 @@ public class PlayerResource {
 				.values()
 				.stream()
 				.collect(
-						Collectors.toMap(player -> player.getWebName(),
-								Player::getAdvancedStats, (p1, p2) -> p1))
+						Collectors.toMap(player -> player.getWebName(), Player::getAdvancedStats, (
+								p1,
+								p2) -> p1))
+								
 				.entrySet()
 				.stream()
-				.sorted((e1, e2) -> -e1.getValue().getAverageAverage()
-						.compareTo(e2.getValue().getAverageAverage()))
+				.sorted(
+						(e1, e2) -> -e1
+								.getValue()
+								.getAverageAverage()
+								.compareTo(e2.getValue().getAverageAverage()))
 				.collect(Collectors.toList());
+
+	}
+
+	@GET
+	@Path("/teamstats")
+	public List getTeamStats() throws IOException {
+		Map<String, Map<PositionType, AdvancedTeamStats>> teamWeights =
+				AdvancedStatUtilities.getTeamWeights(playerMap.values());
+		List<Object> collect = teamWeights
+				.entrySet()
+				.stream()
+				.flatMap(
+						teamEntry -> teamEntry
+								.getValue()
+								.entrySet()
+								.stream()
+								.map(
+										positionEntry -> new SimpleEntry<String, AdvancedTeamStats>(
+												teamEntry.getKey() + positionEntry.getKey(),
+												positionEntry.getValue())))
+				.sorted(
+						(e1, e2) -> -((AdvancedTeamStats) ((Entry) e1).getValue())
+								.getAveragePointsWeighting()
+								.compareTo(
+										((AdvancedTeamStats) ((Entry) e2).getValue())
+												.getAveragePointsWeighting()))
+				.collect(Collectors.toList());
+		return collect;
 
 	}
 
@@ -86,16 +120,13 @@ public class PlayerResource {
 	@GET
 	public Object last32() {
 		Map<String, Integer> map = new HashMap<>();
-		playerMap.forEach((k, v) -> map.put(
-				v.getWebName(),
-				valueFromLastX(2, v.getPlayerGames())
-						+ valueFromLastX(4, v.getPlayerGames())
-						+ valueFromLastX(8, v.getPlayerGames())
-						+ valueFromLastX(16, v.getPlayerGames())
-						+ valueFromLastX(32, v.getPlayerGames())));
+		playerMap.forEach((k, v) -> map.put(v.getWebName(), valueFromLastX(2, v.getPlayerGames())
+				+ valueFromLastX(4, v.getPlayerGames())
+				+ valueFromLastX(8, v.getPlayerGames())
+				+ valueFromLastX(16, v.getPlayerGames())
+				+ valueFromLastX(32, v.getPlayerGames())));
 		List<Entry<String, Integer>> list = new ArrayList(map.entrySet());
-		Collections.sort(list,
-				(e1, e2) -> -e1.getValue().compareTo(e2.getValue()));
+		Collections.sort(list, (e1, e2) -> -e1.getValue().compareTo(e2.getValue()));
 		return list;
 
 	}
@@ -104,15 +135,12 @@ public class PlayerResource {
 	@GET
 	public Object last16() {
 		Map<String, Integer> map = new HashMap<>();
-		playerMap.forEach((k, v) -> map.put(
-				v.getWebName(),
-				valueFromLastX(2, v.getPlayerGames())
-						+ valueFromLastX(4, v.getPlayerGames())
-						+ valueFromLastX(8, v.getPlayerGames())
-						+ valueFromLastX(16, v.getPlayerGames())));
+		playerMap.forEach((k, v) -> map.put(v.getWebName(), valueFromLastX(2, v.getPlayerGames())
+				+ valueFromLastX(4, v.getPlayerGames())
+				+ valueFromLastX(8, v.getPlayerGames())
+				+ valueFromLastX(16, v.getPlayerGames())));
 		List<Entry<String, Integer>> list = new ArrayList(map.entrySet());
-		Collections.sort(list,
-				(e1, e2) -> -e1.getValue().compareTo(e2.getValue()));
+		Collections.sort(list, (e1, e2) -> -e1.getValue().compareTo(e2.getValue()));
 		return list;
 
 	}
@@ -121,28 +149,22 @@ public class PlayerResource {
 	@GET
 	public Object last8() {
 		Map<String, Integer> map = new HashMap<>();
-		playerMap.forEach((k, v) -> map.put(
-				v.getWebName(),
-				valueFromLastX(2, v.getPlayerGames())
-						+ valueFromLastX(4, v.getPlayerGames())
-						+ valueFromLastX(8, v.getPlayerGames())));
+		playerMap.forEach((k, v) -> map.put(v.getWebName(), valueFromLastX(2, v.getPlayerGames())
+				+ valueFromLastX(4, v.getPlayerGames())
+				+ valueFromLastX(8, v.getPlayerGames())));
 		List<Entry<String, Integer>> list = new ArrayList(map.entrySet());
-		Collections.sort(list,
-				(e1, e2) -> -e1.getValue().compareTo(e2.getValue()));
+		Collections.sort(list, (e1, e2) -> -e1.getValue().compareTo(e2.getValue()));
 		return list;
 
 	}
 
-	private Integer valueFromLastX(Integer numberOfGames,
-			Collection<FixtureHistory> fixtureHistory
+	private Integer valueFromLastX(Integer numberOfGames, Collection<FixtureHistory> fixtureHistory
 	// ,
 	// Function<FixtureHistory, Integer> mapFunction
-	) {
+			) {
 		List<FixtureHistory> list = new ArrayList<>(fixtureHistory);
-		list = list.stream().filter(f -> f.getMinutesPlayed() > 0)
-				.collect(Collectors.toList());
-		Collections.sort(list,
-				(c1, c2) -> c1.getFixtureDate().compareTo(c2.getFixtureDate()));
+		list = list.stream().filter(f -> f.getMinutesPlayed() > 0).collect(Collectors.toList());
+		Collections.sort(list, (c1, c2) -> c1.getFixtureDate().compareTo(c2.getFixtureDate()));
 		return list
 				.subList(Math.max(0, list.size() - numberOfGames), list.size())
 				.stream()
@@ -158,14 +180,14 @@ public class PlayerResource {
 		Integer fails = 0;
 		while (clientResponse == null || clientResponse.getStatus() != 404) {
 			try {
-				clientResponse = playersResource.path(playerId.toString()).get(
-						ClientResponse.class);
+				clientResponse =
+						playersResource.path(playerId.toString()).get(ClientResponse.class);
 				if (clientResponse.getStatus() != 404) {
-					Player player = clientResponse
-							.getEntity(PlayerFromFFAPI.class);
+					Player player = clientResponse.getEntity(PlayerFromFFAPI.class);
 					playerMap.put(playerId, player);
-					player.setAdvancedStats(AdvancedStatUtilities
-							.getAdvancedStatsForPlayer(player));
+					player
+							.setAdvancedStats(AdvancedStatUtilities
+									.getAdvancedStatsForPlayer(player));
 					playerDAO.forceSaveEntity(player);
 					playerId++;
 					System.out.println(playerId);
@@ -174,8 +196,7 @@ public class PlayerResource {
 			} catch (ClientHandlerException e) {
 				fails++;
 				if (fails < 10
-						&& (e.getCause() instanceof SocketTimeoutException || e
-								.getCause() instanceof ConnectTimeoutException)) {
+						&& (e.getCause() instanceof SocketTimeoutException || e.getCause() instanceof ConnectTimeoutException)) {
 					e.printStackTrace();
 					System.out.println("sleeping" + fails);
 					try {

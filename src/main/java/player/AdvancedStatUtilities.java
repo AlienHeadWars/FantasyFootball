@@ -6,6 +6,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.ToDoubleFunction;
+import java.util.function.ToIntFunction;
 import java.util.stream.Collectors;
 
 import com.google.common.collect.Lists;
@@ -30,42 +32,99 @@ public class AdvancedStatUtilities {
 	// private Double nextGameWeighted;
 	// private Double totalNext5GameWeeks;
 	// private Double totalRemaining;
-	public static void setPredictionsForPlayers(Collection<Player> players){
-		Map<String, Map<PositionType, Collection<Double>>> teamMap= new HashMap<>();
-		players.forEach(player->player.getPlayerGames().forEach(game->{
-			game.getResult().substring(0, 5);
-			
-		}));
-	}
-	public static AdvancedStats getAdvancedStatsForPlayer(Player player) {
+	public static Map<String, Map<PositionType, AdvancedTeamStats>> getTeamWeights(
+			Collection<Player> players) {
+		Map<String, Map<PositionType, AdvancedTeamStats>> teamMap = new HashMap<>();
 
-		AdvancedStats advancedStats = new AdvancedStats();
-		advancedStats.setPointsPerPlayedGame(averageFromLastX(38,
-				player.getPlayerGames(), true));
-		advancedStats.setPointsLastGame(averageFromLastX(1,
-				player.getPlayerGames(), false));
-		advancedStats.setAveragePointsLast2Games(averageFromLastX(2,
-				player.getPlayerGames(), false));
-		advancedStats.setAveragePointsLast4Games(averageFromLastX(4,
-				player.getPlayerGames(), false));
-		advancedStats.setAveragePointsLast8Games(averageFromLastX(8,
-				player.getPlayerGames(), false));
-		advancedStats.setAveragePointsLast16Games(averageFromLastX(16,
-				player.getPlayerGames(), false));
-		advancedStats.setPointsLastPlayedGame(averageFromLastX(1,
-				player.getPlayerGames(), true));
-		advancedStats.setAveragePointsLast2PlayedGames(averageFromLastX(2,
-				player.getPlayerGames(), true));
-		advancedStats.setAveragePointsLast4PlayedGames(averageFromLastX(4,
-				player.getPlayerGames(), true));
-		advancedStats.setAveragePointsLast8PlayedGames(averageFromLastX(8,
-				player.getPlayerGames(), true));
-		advancedStats.setAveragePointsLast16PlayedGames(averageFromLastX(16,
-				player.getPlayerGames(), true));
+		Lists.newArrayList(Team.values()).forEach(team -> {
+			String homeName = team.getShortName() + "(H)";
+
+			System.out.println("making map for " + homeName);
+			teamMap.put(homeName, new HashMap<>());
+			String awayName = team.getShortName() + "(A)";
+			teamMap.put(awayName, new HashMap<>());
+			Lists.newArrayList(PositionType.values()).forEach(position -> {
+				teamMap.get(homeName).put(position, new AdvancedTeamStats());
+				teamMap.get(awayName).put(position, new AdvancedTeamStats());
+			});
+			;
+		});
+		players.forEach(player ->
+
+		player
+				.getPlayerGames()
+				.stream()
+				.filter(game -> 0 < game.getMinutesPlayed())
+				.forEach(
+						game -> {
+							String key = game.getResult().substring(0, 6);
+							System.out.println("crunching stats from "
+									+ player.getWebName()
+									+ " against "
+									+ key);
+							AdvancedTeamStats advancedTeamStats =
+									teamMap.get(key).get(player.getType());
+							advancedTeamStats.getPointsScoredAgainst().add(game.getPoints());
+							advancedTeamStats.getPointsWeightings().add(
+									game.getPoints()
+											/ player.getAdvancedStats().getPointsPerPlayedGame());
+						}));
+		return teamMap;
+	}
+
+	public static AdvancedPlayerStats getAdvancedStatsForPlayer(Player player) {
+
+		AdvancedPlayerStats advancedStats = new AdvancedPlayerStats();
+		advancedStats.setExtraPointsPer90Minutes(averageFromLast(
+				38,
+				player.getPlayerGames(),
+				true,
+				fh -> (fh.getExtraPoints() * 90) / fh.getMinutesPlayed()));
+		advancedStats.setPointsPerPlayedGame(averagePointsFromLastX(
+				38,
+				player.getPlayerGames(),
+				true));
+		advancedStats.setPointsLastGame(averagePointsFromLastX(1, player.getPlayerGames(), false));
+		advancedStats.setAveragePointsLast2Games(averagePointsFromLastX(
+				2,
+				player.getPlayerGames(),
+				false));
+		advancedStats.setAveragePointsLast4Games(averagePointsFromLastX(
+				4,
+				player.getPlayerGames(),
+				false));
+		advancedStats.setAveragePointsLast8Games(averagePointsFromLastX(
+				8,
+				player.getPlayerGames(),
+				false));
+		advancedStats.setAveragePointsLast16Games(averagePointsFromLastX(
+				16,
+				player.getPlayerGames(),
+				false));
+		advancedStats.setPointsLastPlayedGame(averagePointsFromLastX(
+				1,
+				player.getPlayerGames(),
+				true));
+		advancedStats.setAveragePointsLast2PlayedGames(averagePointsFromLastX(
+				2,
+				player.getPlayerGames(),
+				true));
+		advancedStats.setAveragePointsLast4PlayedGames(averagePointsFromLastX(
+				4,
+				player.getPlayerGames(),
+				true));
+		advancedStats.setAveragePointsLast8PlayedGames(averagePointsFromLastX(
+				8,
+				player.getPlayerGames(),
+				true));
+		advancedStats.setAveragePointsLast16PlayedGames(averagePointsFromLastX(
+				16,
+				player.getPlayerGames(),
+				true));
 		advancedStats.setAverageAverage(average(
-//				advancedStats.getPointsPerPlayedGame(),
-//				advancedStats.getPointsLastGame(),
-//				advancedStats.getPointsLastPlayedGame(),
+		// advancedStats.getPointsPerPlayedGame(),
+		// advancedStats.getPointsLastGame(),
+		// advancedStats.getPointsLastPlayedGame(),
 				advancedStats.getAveragePointsLast2Games(),
 				advancedStats.getAveragePointsLast2PlayedGames(),
 				advancedStats.getAveragePointsLast4Games(),
@@ -79,23 +138,30 @@ public class AdvancedStatUtilities {
 	}
 
 	private static Double average(Double... doubles) {
-		return Lists.newArrayList(doubles).stream()
-				.collect(Collectors.averagingDouble(d -> d));
+		return Lists.newArrayList(doubles).stream().collect(Collectors.averagingDouble(d -> d));
 	}
 
-	private static Double averageFromLastX(Integer numberOfGames,
-			Collection<FixtureHistory> fixtureHistory, boolean playedOnly) {
+	private static Double averagePointsFromLastX(
+			Integer numberOfGames,
+			Collection<FixtureHistory> fixtureHistory,
+			boolean playedOnly) {
+		return averageFromLast(numberOfGames, fixtureHistory, playedOnly, FixtureHistory::getPoints);
+
+	}
+
+	private static Double averageFromLast(
+			Integer numberOfGames,
+			Collection<FixtureHistory> fixtureHistory,
+			boolean playedOnly,
+			ToDoubleFunction<? super FixtureHistory> toDoubleFunction) {
 		List<FixtureHistory> list = new ArrayList<>(fixtureHistory);
 		if (playedOnly)
-			list = list.stream().filter(f -> f.getMinutesPlayed() > 0)
-					.collect(Collectors.toList());
-		Collections.sort(list,
-				(c1, c2) -> c1.getFixtureDate().compareTo(c2.getFixtureDate()));
+			list = list.stream().filter(f -> f.getMinutesPlayed() > 0).collect(Collectors.toList());
+		Collections.sort(list, (c1, c2) -> c1.getFixtureDate().compareTo(c2.getFixtureDate()));
 		return list
 				.subList(Math.max(0, list.size() - numberOfGames), list.size())
 				.stream()
-				.collect(Collectors.averagingInt(FixtureHistory::getPoints));
-
+				.collect(Collectors.averagingDouble(toDoubleFunction));
 	}
 
 }

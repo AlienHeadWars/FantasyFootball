@@ -19,12 +19,12 @@ public class Player extends SimpleEntity{
 	private Collection<FixtureHistory> playerGames = new ArrayList<FixtureHistory>();
 	private Collection<Fixture> playerFixtures = new ArrayList<Fixture>();
 	private PositionType type = PositionType.POSITION_NOT_FOUND;
-	private Team team = Team.TEAM_NOT_SET;
+	private Team team = null;
 	private String firstName = NOT_SET_STRING;
 	private String lastName = NOT_SET_STRING;
 	private Integer chanceOfPlayingThisRound = NOT_SET_INTEGER;
 	private Integer chanceOfPlayingNextRound = NOT_SET_INTEGER;
-	private AdvancedStats advancedStats;
+	private AdvancedPlayerStats advancedStats;
 
 	public Player() {
 		super();
@@ -115,11 +115,11 @@ public class Player extends SimpleEntity{
 		this.chanceOfPlayingNextRound = chanceOfPlayingNextRound;
 	}
 
-	public AdvancedStats getAdvancedStats() {
+	public AdvancedPlayerStats getAdvancedStats() {
 		return advancedStats;
 	}
 
-	public void setAdvancedStats(AdvancedStats advancedStats) {
+	public void setAdvancedStats(AdvancedPlayerStats advancedStats) {
 		this.advancedStats = advancedStats;
 	}
 

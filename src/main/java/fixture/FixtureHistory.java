@@ -3,6 +3,8 @@ package fixture;
 import java.util.Date;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 //@JsonDeserialize(using = FixtureHistoryDeserialiser.class)
@@ -189,6 +191,20 @@ public class FixtureHistory {
 
 	public void setGoalsConceded(Integer goalsConceded) {
 		this.goalsConceded = goalsConceded;
+	}
+
+	@JsonProperty
+	public Integer getExtraPoints() {
+
+		return getPoints()
+				- new Double(Math.ceil(getMinutesPlayed().doubleValue() / 60)).intValue();
+		// return getPoints() - new Double(Math.ceil(getMinutesPlayed() /
+		// 60)).intValue();
+	}
+
+	@JsonIgnore
+	public void setExtraPoints(Integer points) {
+
 	}
 
 }
