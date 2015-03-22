@@ -44,8 +44,6 @@ public class AdvancedStatUtilities {
 
 		Lists.newArrayList(Team.values()).forEach(team -> {
 			String homeName = team.getTeamName() + " (H)";
-
-			System.out.println("making map for " + homeName);
 			teamMap.put(homeName, new HashMap<>());
 			String awayName = team.getTeamName() + " (A)";
 			teamMap.put(awayName, new HashMap<>());
@@ -73,11 +71,13 @@ public class AdvancedStatUtilities {
 							AdvancedTeamStats advancedTeamStats =
 									teamMap.get(key).get(player.getType());
 							advancedTeamStats.getPointsScoredAgainst().add(game.getPoints());
-							Double pointsDivAverage =
-									game.getPoints()
-											/ player.getAdvancedStats().getPointsPerPlayedGame();
-							advancedTeamStats.getPointsWeightings().add(
-									pointsDivAverage.equals(Double.NaN) ? 1 : pointsDivAverage);
+							advancedTeamStats.getPointsExpectedAgainst().add(
+									player
+											.getAdvancedStats()
+											.getPointsPerPlayedGame()
+											.equals(Double.NaN) ? 0 : player
+											.getAdvancedStats()
+											.getPointsPerPlayedGame());
 						}));
 		return teamMap;
 	}
@@ -136,13 +136,15 @@ public class AdvancedStatUtilities {
 		// advancedStats.getPointsLastGame(),
 		// advancedStats.getPointsLastPlayedGame(),
 				advancedStats.getAveragePointsLast2Games(),
-				advancedStats.getAveragePointsLast2PlayedGames(),
+//				advancedStats.getAveragePointsLast2PlayedGames(),
 				advancedStats.getAveragePointsLast4Games(),
-				advancedStats.getAveragePointsLast4PlayedGames(),
+//				advancedStats.getAveragePointsLast4PlayedGames(),
 				advancedStats.getAveragePointsLast8Games(),
-				advancedStats.getAveragePointsLast8PlayedGames(),
-				advancedStats.getAveragePointsLast16Games(),
-				advancedStats.getAveragePointsLast16PlayedGames()));
+//				advancedStats.getAveragePointsLast8PlayedGames(),
+				advancedStats.getAveragePointsLast16Games()
+//				,
+//				advancedStats.getAveragePointsLast16PlayedGames()
+				));
 		;
 		return advancedStats;
 	}
@@ -165,10 +167,10 @@ public class AdvancedStatUtilities {
 			boolean playedOnly,
 			ToDoubleFunction<? super FixtureHistory> toDoubleFunction) {
 		List<FixtureHistory> list = new ArrayList<>(fixtureHistory);
-		
+
 		Stream<FixtureHistory> filtered = list.stream();
 		if (playedOnly) {
-			filtered=filtered.filter(f -> f.getMinutesPlayed() > 0);
+			filtered = filtered.filter(f -> f.getMinutesPlayed() > 0);
 		}
 		list = filtered.filter(now()).collect(Collectors.toList());
 		Collections.sort(list, (c1, c2) -> c1.getFixtureDate().compareTo(c2.getFixtureDate()));
@@ -179,7 +181,8 @@ public class AdvancedStatUtilities {
 	}
 
 	private static Predicate<? super HasFixtureDate> now() {
-		Long now = new Date().getTime();
+		Date date = new Date();
+		Long now = date.getTime()+120*60*1000;
 		Predicate<? super HasFixtureDate> predicate = f -> f.getFixtureDate().getTime() < now;
 		return predicate;
 	}

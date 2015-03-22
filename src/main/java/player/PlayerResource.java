@@ -13,6 +13,9 @@ import java.util.Map.Entry;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.jaxrs.annotation.JacksonFeatures;
+
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -30,6 +33,7 @@ import fixture.FixtureHistory;
 
 @Path("players")
 @Produces(MediaType.APPLICATION_JSON)
+
 public class PlayerResource {
 
 	private WebResource playersResource;
@@ -54,18 +58,22 @@ public class PlayerResource {
 
 	@GET
 	@Path("/all")
+	@JacksonFeatures( serializationEnable =
+	{ SerializationFeature.INDENT_OUTPUT } )
 	public Map getPlayers() throws IOException {
 		return playerMap;
 	}
 
 	@GET
 	@Path("/stats")
+	@JacksonFeatures( serializationEnable =
+	{ SerializationFeature.INDENT_OUTPUT } )
 	public List getPlayerStats() throws IOException {
 		return playerMap
 				.values()
 				.stream()
 				.collect(
-						Collectors.toMap(player -> player.getWebName(), Player::getAdvancedStats, (
+						Collectors.toMap(player -> player.getWebName() +" " +player.getType(), Player::getAdvancedStats, (
 								p1,
 								p2) -> p1))
 
@@ -82,6 +90,8 @@ public class PlayerResource {
 
 	@GET
 	@Path("/teamstats")
+	@JacksonFeatures( serializationEnable =
+	{ SerializationFeature.INDENT_OUTPUT } )
 	public List getTeamStats() throws IOException {
 		List<Object> collect =
 				teamWeights
@@ -120,6 +130,8 @@ public class PlayerResource {
 
 	@GET
 	@Path("/updateFromFF")
+	@JacksonFeatures( serializationEnable =
+	{ SerializationFeature.INDENT_OUTPUT } )
 	public Map populatePlayers() throws IOException {
 		ClientResponse clientResponse = null;
 		Integer playerId = 1;
@@ -164,6 +176,8 @@ public class PlayerResource {
 
 	@GET
 	@Path("/recalculateStats")
+	@JacksonFeatures( serializationEnable =
+	{ SerializationFeature.INDENT_OUTPUT } )
 	public  List recalculateStats() throws IOException {
 		playerMap.forEach((id, player) -> player.setAdvancedStats(AdvancedStatUtilities
 				.getAdvancedStatsForPlayer(player)));

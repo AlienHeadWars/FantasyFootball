@@ -18,7 +18,7 @@ public class Player extends SimpleEntity{
 	private String webName = NOT_SET_STRING;
 	private Collection<FixtureHistory> playerGames = new ArrayList<FixtureHistory>();
 	private Collection<Fixture> playerFixtures = new ArrayList<Fixture>();
-	private PositionType type = PositionType.POSITION_NOT_FOUND;
+	private PositionType type = null;
 	private Team team = null;
 	private String firstName = NOT_SET_STRING;
 	private String lastName = NOT_SET_STRING;

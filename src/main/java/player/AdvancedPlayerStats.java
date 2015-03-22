@@ -146,10 +146,15 @@ public class AdvancedPlayerStats {
 
 	@JsonProperty
 	public Map<String, Double> getPredictions() {
-		return gamePredictions
+		Map<String, Double> collect = gamePredictions
 				.entrySet()
 				.stream()
-				.collect(Collectors.toMap(e -> e.getKey().getAgainst(), e -> e.getValue()));
+				.collect(
+						Collectors.toMap(e -> "("
+								+ e.getKey().getGameSequence()
+								+ ") "
+								+ e.getKey().getAgainst(), e -> e.getValue()));
+		return new TreeMap<>(collect);
 	}
 
 	@JsonIgnore
