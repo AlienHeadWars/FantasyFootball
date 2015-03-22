@@ -4,7 +4,7 @@ import java.util.Date;
 
 import player.Team;
 
-public class Fixture {
+public class Fixture implements HasFixtureDate{
 	private Date fixtureDate;
 	private String against;
 	private Integer gameSequence;

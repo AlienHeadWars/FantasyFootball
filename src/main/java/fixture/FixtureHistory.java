@@ -8,7 +8,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 //@JsonDeserialize(using = FixtureHistoryDeserialiser.class)
-public class FixtureHistory {
+public class FixtureHistory implements HasFixtureDate {
 
 	// private Fixture fixture;
 	private Date fixtureDate;
@@ -32,6 +32,10 @@ public class FixtureHistory {
 	private Integer value;
 	private Integer points;
 
+	/* (non-Javadoc)
+	 * @see fixture.HasFixtureDate#getFixtureDate()
+	 */
+	@Override
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd,HH:00")
 	public Date getFixtureDate() {
 		return fixtureDate;

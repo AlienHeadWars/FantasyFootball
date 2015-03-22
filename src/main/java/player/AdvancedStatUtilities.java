@@ -3,18 +3,22 @@ package player;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 import java.util.function.ToDoubleFunction;
 import java.util.function.ToIntFunction;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.google.common.collect.Lists;
 
 import fixture.Fixture;
 import fixture.FixtureHistory;
+import fixture.HasFixtureDate;
 
 public class AdvancedStatUtilities {
 
@@ -57,6 +61,7 @@ public class AdvancedStatUtilities {
 				.getPlayerGames()
 				.stream()
 				.filter(game -> 0 < game.getMinutesPlayed())
+				.filter(now())
 				.forEach(
 						game -> {
 							String key = game.getResult().substring(0, 6);
@@ -65,10 +70,6 @@ public class AdvancedStatUtilities {
 									key.replace(teamAgainst, Team
 											.getByShortName(teamAgainst)
 											.getTeamName() + " ");
-							System.out.println("crunching stats from "
-									+ player.getWebName()
-									+ " against "
-									+ key);
 							AdvancedTeamStats advancedTeamStats =
 									teamMap.get(key).get(player.getType());
 							advancedTeamStats.getPointsScoredAgainst().add(game.getPoints());
@@ -164,13 +165,23 @@ public class AdvancedStatUtilities {
 			boolean playedOnly,
 			ToDoubleFunction<? super FixtureHistory> toDoubleFunction) {
 		List<FixtureHistory> list = new ArrayList<>(fixtureHistory);
-		if (playedOnly)
-			list = list.stream().filter(f -> f.getMinutesPlayed() > 0).collect(Collectors.toList());
+		
+		Stream<FixtureHistory> filtered = list.stream();
+		if (playedOnly) {
+			filtered=filtered.filter(f -> f.getMinutesPlayed() > 0);
+		}
+		list = filtered.filter(now()).collect(Collectors.toList());
 		Collections.sort(list, (c1, c2) -> c1.getFixtureDate().compareTo(c2.getFixtureDate()));
 		return list
 				.subList(Math.max(0, list.size() - numberOfGames), list.size())
 				.stream()
 				.collect(Collectors.averagingDouble(toDoubleFunction));
+	}
+
+	private static Predicate<? super HasFixtureDate> now() {
+		Long now = new Date().getTime();
+		Predicate<? super HasFixtureDate> predicate = f -> f.getFixtureDate().getTime() < now;
+		return predicate;
 	}
 
 	public static void populatePlayerPredictions(
@@ -193,7 +204,12 @@ public class AdvancedStatUtilities {
 
 			Fixture firstKey = advancedStats.getGamePredictions().firstKey();
 			Double nextGameWeighted = advancedStats.getGamePredictions().get(firstKey);
-			advancedStats.setNextGameWeighted(nextGameWeighted);
+			advancedStats.setNextGameWeekWeighted(advancedStats
+					.getGamePredictions()
+					.entrySet()
+					.stream()
+					.filter((e) -> e.getKey().getGameSequence().equals(firstKey.getGameSequence()))
+					.collect(Collectors.summingDouble(e -> e.getValue())));
 			advancedStats.setTotalRemaining(advancedStats
 					.getGamePredictions()
 					.values()

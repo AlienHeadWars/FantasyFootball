@@ -74,8 +74,8 @@ public class PlayerResource {
 				.sorted(
 						(e1, e2) -> -e1
 								.getValue()
-								.getNextGameWeighted()
-								.compareTo(e2.getValue().getNextGameWeighted()))
+								.getTotalNext5GameWeeks()
+								.compareTo(e2.getValue().getTotalNext5GameWeeks()))
 				.collect(Collectors.toList());
 
 	}

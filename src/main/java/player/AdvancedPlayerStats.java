@@ -28,7 +28,7 @@ public class AdvancedPlayerStats {
 	@JsonIgnore
 	private SortedMap<Fixture, Double> gamePredictions = new TreeMap<Fixture, Double>(
 			(f1, f2) -> f1.getFixtureDate().compareTo(f2.getFixtureDate()));
-	private Double nextGameWeighted;
+	private Double nextGameWeekWeighted;
 	private Double totalNext5GameWeeks;
 	private Double totalRemaining;
 
@@ -156,12 +156,12 @@ public class AdvancedPlayerStats {
 	public void setPredictions(SortedMap<Fixture, Double> gamePredictions) {
 	}
 
-	public Double getNextGameWeighted() {
-		return nextGameWeighted;
+	public Double getNextGameWeekWeighted() {
+		return nextGameWeekWeighted;
 	}
 
-	public void setNextGameWeighted(Double nextGameWeighted) {
-		this.nextGameWeighted = nextGameWeighted;
+	public void setNextGameWeekWeighted(Double nextGameWeekWeighted) {
+		this.nextGameWeekWeighted = nextGameWeekWeighted;
 	}
 
 	public Double getTotalNext5GameWeeks() {
