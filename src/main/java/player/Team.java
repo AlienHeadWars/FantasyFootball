@@ -5,46 +5,27 @@ import java.util.stream.Collectors;
 import com.google.common.collect.Lists;
 
 public enum Team {
-	ARSENAL(
-			"Arsenal", "ARS"),
-	ASTON_VILLA(
-			"Aston Villa", "AVL"),
-	BURNLEY(
-			"Burnley", "BUR"),
-	CHELSEA(
-			"Chelsea", "CHE"),
-	CRYSTAL_PALACE(
-			"Crystal Palace", "CRY"),
-	EVERTON(
-			"Everton", "EVE"),
-	HULL(
-			"Hull", "HUL"),
-	LEICESTER(
-			"Leicester", "LEI"),
-	LIVERPOOL(
-			"Liverpool", "LIV"),
-	MANCHESTER_CITY(
-			"Man City", "MCI"),
-	MANCHESTER_UNITED(
-			"Man Utd", "MUN"),
-	NEWCASTLE(
-			"Newcastle", "NEW"),
-	QUEENS_PARK_RANGERS(
-			"QPR", "QPR"),
-	SOUTHAMPTON(
-			"Southampton", "SOU"),
-	STOKE(
-			"Stoke", "STK"),
-	SWANSEA(
-			"Swansea", "SWA"),
-	SUNDERLAND(
-			"Sunderland", "SUN"),
-	TOTTENHAM(
-			"Spurs", "TOT"),
-	WEST_BROM(
-			"West Brom", "WBA"),
-	WEST_HAM(
-			"West Ham", "WHU");
+	ARSENAL("Arsenal", "ARS"),
+	ASTON_VILLA("Aston Villa", "AVL"),
+	BOURNEMOUTH("Bournemouth", "BOU"),
+	CHELSEA("Chelsea", "CHE"),
+	CRYSTAL_PALACE("Crystal Palace", "CRY"),
+	EVERTON("Everton", "EVE"),
+	HULL("Hull", "HUL"),
+	LEICESTER("Leicester", "LEI"),
+	LIVERPOOL("Liverpool", "LIV"),
+	MANCHESTER_CITY("Man City", "MCI"),
+	MANCHESTER_UNITED("Man Utd", "MUN"),
+	NEWCASTLE("Newcastle", "NEW"),
+	NORWICH("Norwich", "NOR"),
+	SOUTHAMPTON("Southampton", "SOU"),
+	STOKE("Stoke", "STK"),
+	SWANSEA("Swansea", "SWA"),
+	SUNDERLAND("Sunderland", "SUN"),
+	TOTTENHAM("Spurs", "TOT"),
+	WATFORD("Watford", "WAT"),
+	WEST_BROM("West Brom", "WBA"),
+	WEST_HAM("West Ham", "WHU");
 	private String teamName, shortName;
 
 	private Team() {
@@ -57,21 +38,15 @@ public enum Team {
 	}
 
 	public static Team getByTeamName(String teamName) {
-		return Lists
-				.newArrayList(Team.values())
-				.stream()
+		return Lists.newArrayList(Team.values()).stream()
 				.filter(t -> teamName.equals(t.getTeamName()))
-				.collect(Collectors.toList())
-				.get(0);
+				.collect(Collectors.toList()).get(0);
 	}
 
 	public static Team getByShortName(String shortName) {
-		return Lists
-				.newArrayList(Team.values())
-				.stream()
+		return Lists.newArrayList(Team.values()).stream()
 				.filter(t -> shortName.equals(t.getShortName()))
-				.collect(Collectors.toList())
-				.get(0);
+				.collect(Collectors.toList()).get(0);
 	}
 
 	public String getTeamName() {
