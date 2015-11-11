@@ -6,6 +6,7 @@ import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,7 +34,6 @@ import fixture.FixtureHistory;
 
 @Path("players")
 @Produces(MediaType.APPLICATION_JSON)
-
 public class PlayerResource {
 
 	private WebResource playersResource;
@@ -42,13 +42,15 @@ public class PlayerResource {
 	private Map<String, Map<PositionType, AdvancedTeamStats>> teamWeights;
 
 	public PlayerResource(Client client) {
-		playersResource = client.resource("http://fantasy.premierleague.com/web/api/elements/");
+		playersResource = client
+				.resource("http://fantasy.premierleague.com/web/api/elements/");
 		String couchDbUrl = "http://127.0.0.1:5984/";
 		playerDAO = new PlayerDAO(client, couchDbUrl);
 		playerMap = new HashMap<>();
 		try {
 			populatePlayersFromDB();
-			teamWeights = AdvancedStatUtilities.getTeamWeights(playerMap.values());
+			teamWeights = AdvancedStatUtilities.getTeamWeights(playerMap
+					.values());
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -58,61 +60,53 @@ public class PlayerResource {
 
 	@GET
 	@Path("/all")
-	@JacksonFeatures( serializationEnable =
-	{ SerializationFeature.INDENT_OUTPUT } )
+	@JacksonFeatures(serializationEnable = { SerializationFeature.INDENT_OUTPUT })
 	public Map getPlayers() throws IOException {
 		return playerMap;
 	}
 
 	@GET
 	@Path("/stats")
-	@JacksonFeatures( serializationEnable =
-	{ SerializationFeature.INDENT_OUTPUT } )
+	@JacksonFeatures(serializationEnable = { SerializationFeature.INDENT_OUTPUT })
 	public List getPlayerStats() throws IOException {
 		return playerMap
 				.values()
 				.stream()
 				.collect(
-						Collectors.toMap(player -> player.getWebName() +" " +player.getType(), Player::getAdvancedStats, (
-								p1,
-								p2) -> p1))
+						Collectors.toMap(player -> player.getWebName() + " "
+								+ player.getType(), Player::getAdvancedStats, (
+								p1, p2) -> p1))
 
 				.entrySet()
 				.stream()
-				.sorted(
-						(e1, e2) -> -e1
-								.getValue()
-								.getTotalNext5GameWeeks()
-								.compareTo(e2.getValue().getTotalNext5GameWeeks()))
+				.sorted((e1, e2) -> Comparator.comparing(
+						AdvancedPlayerStats::getTotalNext5GameWeeks).compare(
+						e1.getValue(), e2.getValue()))
 				.collect(Collectors.toList());
 
 	}
 
 	@GET
 	@Path("/teamstats")
-	@JacksonFeatures( serializationEnable =
-	{ SerializationFeature.INDENT_OUTPUT } )
+	@JacksonFeatures(serializationEnable = { SerializationFeature.INDENT_OUTPUT })
 	public List getTeamStats() throws IOException {
-		List<Object> collect =
-				teamWeights
-						.entrySet()
-						.stream()
-						.flatMap(
-								teamEntry -> teamEntry
-										.getValue()
-										.entrySet()
-										.stream()
-										.map(
-												positionEntry -> new SimpleEntry<String, AdvancedTeamStats>(
-														teamEntry.getKey() + positionEntry.getKey(),
-														positionEntry.getValue())))
-						.sorted(
-								(e1, e2) -> -((AdvancedTeamStats) ((Entry) e1).getValue())
-										.getAveragePointsWeighting()
-										.compareTo(
-												((AdvancedTeamStats) ((Entry) e2).getValue())
-														.getAveragePointsWeighting()))
-						.collect(Collectors.toList());
+		List<Object> collect = teamWeights
+				.entrySet()
+				.stream()
+				.flatMap(
+						teamEntry -> teamEntry
+								.getValue()
+								.entrySet()
+								.stream()
+								.map(positionEntry -> new SimpleEntry<String, AdvancedTeamStats>(
+										teamEntry.getKey()
+												+ positionEntry.getKey(),
+										positionEntry.getValue())))
+				.sorted((e1, e2) -> -((AdvancedTeamStats) ((Entry) e1)
+						.getValue()).getAveragePointsWeighting().compareTo(
+						((AdvancedTeamStats) ((Entry) e2).getValue())
+								.getAveragePointsWeighting()))
+				.collect(Collectors.toList());
 		return collect;
 
 	}
@@ -130,18 +124,18 @@ public class PlayerResource {
 
 	@GET
 	@Path("/updateFromFF")
-	@JacksonFeatures( serializationEnable =
-	{ SerializationFeature.INDENT_OUTPUT } )
+	@JacksonFeatures(serializationEnable = { SerializationFeature.INDENT_OUTPUT })
 	public Map populatePlayers() throws IOException {
 		ClientResponse clientResponse = null;
 		Integer playerId = 1;
 		Integer fails = 0;
 		while (clientResponse == null || clientResponse.getStatus() != 404) {
 			try {
-				clientResponse =
-						playersResource.path(playerId.toString()).get(ClientResponse.class);
+				clientResponse = playersResource.path(playerId.toString()).get(
+						ClientResponse.class);
 				if (clientResponse.getStatus() != 404) {
-					Player player = clientResponse.getEntity(PlayerFromFFAPI.class);
+					Player player = clientResponse
+							.getEntity(PlayerFromFFAPI.class);
 					playerMap.put(playerId, player);
 					playerId++;
 					System.out.println(playerId);
@@ -150,7 +144,8 @@ public class PlayerResource {
 			} catch (ClientHandlerException e) {
 				fails++;
 				if (fails < 10
-						&& (e.getCause() instanceof SocketTimeoutException || e.getCause() instanceof ConnectTimeoutException)) {
+						&& (e.getCause() instanceof SocketTimeoutException || e
+								.getCause() instanceof ConnectTimeoutException)) {
 					e.printStackTrace();
 					System.out.println("sleeping" + fails);
 					try {
@@ -176,13 +171,14 @@ public class PlayerResource {
 
 	@GET
 	@Path("/recalculateStats")
-	@JacksonFeatures( serializationEnable =
-	{ SerializationFeature.INDENT_OUTPUT } )
-	public  List recalculateStats() throws IOException {
-		playerMap.forEach((id, player) -> player.setAdvancedStats(AdvancedStatUtilities
-				.getAdvancedStatsForPlayer(player)));
+	@JacksonFeatures(serializationEnable = { SerializationFeature.INDENT_OUTPUT })
+	public List recalculateStats() throws IOException {
+		playerMap.forEach((id, player) -> player
+				.setAdvancedStats(AdvancedStatUtilities
+						.getAdvancedStatsForPlayer(player)));
 		teamWeights = AdvancedStatUtilities.getTeamWeights(playerMap.values());
-		AdvancedStatUtilities.populatePlayerPredictions(teamWeights, playerMap.values());
+		AdvancedStatUtilities.populatePlayerPredictions(teamWeights,
+				playerMap.values());
 		return getPlayerStats();
 	}
 

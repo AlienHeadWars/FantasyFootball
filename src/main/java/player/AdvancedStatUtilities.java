@@ -182,7 +182,7 @@ public class AdvancedStatUtilities {
 
 	private static Predicate<? super HasFixtureDate> now() {
 		Date date = new Date();
-		Long now = date.getTime()+120*60*1000;
+		Long now = date.getTime()-120*60*1000;
 		Predicate<? super HasFixtureDate> predicate = f -> f.getFixtureDate().getTime() < now;
 		return predicate;
 	}

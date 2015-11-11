@@ -11,7 +11,6 @@ public enum Team {
 	CHELSEA("Chelsea", "CHE"),
 	CRYSTAL_PALACE("Crystal Palace", "CRY"),
 	EVERTON("Everton", "EVE"),
-	HULL("Hull", "HUL"),
 	LEICESTER("Leicester", "LEI"),
 	LIVERPOOL("Liverpool", "LIV"),
 	MANCHESTER_CITY("Man City", "MCI"),

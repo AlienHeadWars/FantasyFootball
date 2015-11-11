@@ -31,7 +31,7 @@ import couchdb.SimpleEntity;
 public final class CouchDbUtilities
 {
 	private static final String		INDEX					= "function(doc) { if (doc.%1$s)  emit(doc.%1$s, doc) }";
-	private static String			databasePrefix;
+	private static String			databasePrefix="new";
 
 	/**
 	 * Converts a parameter into a couchdb url parameter. This involves: *replacing all spaces with "%20" *enclosing the
